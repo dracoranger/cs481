@@ -295,10 +295,25 @@ verify_user_range (const void *uaddr, size_t size)
 
   /* Exit system call. */
   static int
-  sys_exit (int exit_code)
+  sys_exit (int status)
   {
     /* TODO (Phase 2): Implement exit system call. */
+    struct thread *cur = thread_current();
 
+    ASSERT//pcb should never be null
+    cur-> pcb-> exit_code = status;
+    int hasChildren = 1;
+    int currentChild = 1;
+    while(hasChildren){
+      if(child_pid[currentChild]!=NULL){
+          getPID(child_pid[currentChild]).sys_exit(status);
+      }
+      else{
+          hasChildren=0;
+      }
+      currentChild=currentChild+1;
+    }
+    thread_exit();
     /*
     for (int fd = 0; fd < MAX_FILES; fd++)
     {
@@ -312,21 +327,24 @@ verify_user_range (const void *uaddr, size_t size)
   static int
   sys_exec (const char *upath, char *const uargv[])
   {
+    int ret= -1;
     /* TODO (Phase 2): Implement exec system call. */
     //return -1;
     if(verify_user_range(upath,upath.size())&&verify_user_range(uargv,upath.size()))
     {//probably need to fix fixe
       //lock?
-      int ret= -1;
 
       char *kstr= copy_in_string(*upath);
       char **kargv = copy_in_argv(* uargv[])
 
+      lock_acquire (&fs_lock);
       ret= process_execute(kstr, kargv);
+      lock_release (&fs_lock);
+
+      palloc_free_page (kargv);
+      palloc_free_page (kstr);
     }
-    else{
-      ret = -1;
-    }
+    return ret;
   }
 
   /* Wait system call. */
@@ -716,7 +734,7 @@ struct pcb
     /* TODO (Phase 2): Add children data structure (see also above). */
     int *child_pid[MAX_CHILD];
     /* TODO (Phase 2): Add tracking of exit code(s) (see also above). */
-    int *child_exit[MAX_CHILD];
+    int exit_code;
   };
 
 void process_init (void);
