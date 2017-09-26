@@ -788,7 +788,7 @@ struct exec_info
 /* TODO (Phase 2): Track available PIDs. */
 static struct lock pid_lock;
 
-int current_pid=0;
+//int current_pid=0;
 
 void
 process_init (void)
@@ -974,7 +974,7 @@ process_wait (pid_t child_pid)
 
   sema_wait (&child->dead);
   /* TODO (Phase 2): Get child's exit code. */
-
+  exit_code=child->exit_code;//added think it works
   ASSERT (thread_cannot_schedule (child->thread)); /* A little healthy paranoia:
                                                       we do not want to free a thread
                                                       that could later run. Otherwise,
@@ -984,7 +984,7 @@ process_wait (pid_t child_pid)
   /* Finally free zombie. */
 
   /* TODO (Phase 2): Remove from children data structure. */
-
+  palloc_free_page(cur->pcb->child_pid);//Added think its something like this
   palloc_free_page (child->thread);
   palloc_free_page (child);
 
@@ -1034,7 +1034,7 @@ process_notify_parent (void)
 
   /* TODO (Phase 2): Replace global exit_code with the use of
      your exit code field/variable. */
-  printf ("%s: exit(%d)\n", cur->name, exit_code);
+  printf ("%s: exit(%d)\n", cur->name, cur->exit_code);//added cur->exit_code
   sema_signal (&cur->pcb->dead);
 }
 
