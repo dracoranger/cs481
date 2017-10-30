@@ -13,7 +13,7 @@ static struct block *swap_device;
 /* Used swap frames. */
 /* TODO (Phase 4): Implement data structure to track which frames
  * in swap space are in use. */
-
+static struct hash *hash;
 /* Protects data structure above. */
 static struct lock swap_lock;
 
@@ -33,6 +33,7 @@ swap_init (void)
     {
       /* TODO (Phase 4): Initialize swap-tracking data structure. */
       //hashtable Page 49 (objective) on the pintos manual
+      hash_init(hash, hash_int, less, NULL);//need to look up how we did less
     }
   lock_init (&swap_lock);
 }
@@ -140,12 +141,12 @@ static bool pick_me (struct frame *f)
   //return true;
   //Page recently accessed?
 
-  if(f->seen == true){
+  if(page_accessed_recently(f->page)){
     return true;
 
   }
   else{
-    f->seen = true;
+    f->page->accessed = true;
     return false;
 
   }
