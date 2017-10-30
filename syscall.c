@@ -300,13 +300,13 @@ verify_user_range (const void *uaddr, size_t size)
     /* TODO (Phase 2): Implement exit system call. */
     struct thread *cur = thread_current();
 
-    ASSERT//pcb should never be null
+    ASSERT(NULL != cur);//pcb should never be null
     cur-> pcb-> exit_code = status;
     int hasChildren = 1;
     int currentChild = 1;
     while(hasChildren){
       if(child_pid[currentChild]!=NULL){
-          getPID(child_pid[currentChild]).sys_exit(status);
+          child_pid[currentChild].sys_exit(status);
       }
       else{
           hasChildren=0;
@@ -353,7 +353,19 @@ verify_user_range (const void *uaddr, size_t size)
   {
     /* TODO (Phase 2): Implement wait system call. */
 
-    return -1;
+    int ret = -1;
+    struct thread *cur = thread_current();
+
+    ASSERT(NULL != cur);
+
+    int chi = cur->child_pid[child]; //since it must be a child, both parent and child cannot wait on each other, i think
+
+    lock_acquire (&fs_lock);
+    ret=process_wait(chi);
+    lock_release (&fs_lock);
+
+    return ret;
+
   }
 
   /* Create system call. */
